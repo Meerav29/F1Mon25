@@ -1,6 +1,8 @@
 import pandas as pd
 from pathlib import Path
 import numpy as np
+from elo_ratings import compute_driver_elo
+from elo_ratings import fetch_all_results
 
 def load_monaco_data(years, data_dir="data/monaco"):
     dfs = []
@@ -78,15 +80,38 @@ def apply_recency_weight(wide, decay=1.0):
     wide['RecencyWeight'] = np.exp(-decay*(max_year - wide['Year']))
     return wide
 
+def enrich_with_elo(wide, years):
+    # 1) compute driver Elo
+    driver_elo = compute_driver_elo(years)
+    wide = wide.merge(driver_elo, on=['Year','Driver'], how='left')
 
+    # 2) map drivers to teams (you might already have this in your results df)
+    team_map = (
+      fetch_all_results(years)[['Year','Driver','Team']]
+      .drop_duplicates()
+    )
+    wide = wide.merge(team_map, on=['Year','Driver'], how='left')
+
+    # 3) compute team‐level Elo
+    team_elo = (
+      wide
+      .groupby(['Year','Team'], as_index=False)['Elo']
+      .mean()
+      .rename(columns={'Elo':'TeamElo'})
+    )
+    wide = wide.merge(team_elo, on=['Year','Team'], how='left')
+    return wide
 
 if __name__ == "__main__":
     years = [2023, 2024]
-    df    = load_monaco_data(years)
-    feats = compute_best_and_gap(df)
-    wide = pivot_and_compute_deltas(feats)
-    wide = apply_recency_weight(wide, decay=1.0)
+    raw   = load_monaco_data(years)
+    feats = compute_best_and_gap(raw)
+    wide  = pivot_and_compute_deltas(feats)
+    wide  = apply_recency_weight(wide)
 
-    print("Shape:", wide.shape)  # should be (40, 6) → 2 years × ~20 drivers × 6 cols
+    # ← HERE is where you call your Elo‐merge function
+    wide  = enrich_with_elo(wide, years)
+
+    print("Final shape:", wide.shape)
     print(wide.to_string(index=False))
 
