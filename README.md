@@ -30,5 +30,5 @@ I’m building a Formula 1 race predictor 🏎️ that pulls in historical data
 ---
 ## Connect
 
-* 🌐 Website: \[https://sites.google.com/psu.edu/meeravshah]
+* 🌐 Website: \[https://sites.google.com/psu.edu/]
 * 🔗 LinkedIn: \[https://www.linkedin.com/in/meeravshah/]
