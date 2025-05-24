@@ -109,9 +109,13 @@ if __name__ == "__main__":
     wide  = pivot_and_compute_deltas(feats)
     wide  = apply_recency_weight(wide)
 
-    # ← HERE is where you call your Elo‐merge function
+    # ← Elo‐merge enrichment
     wide  = enrich_with_elo(wide, years)
 
+    # Export for model.py to consume
+    wide.to_csv('features_wide.csv', index=False)
+
+    # (Optional) inspect
     print("Final shape:", wide.shape)
     print(wide.to_string(index=False))
 

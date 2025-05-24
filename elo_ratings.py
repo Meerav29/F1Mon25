@@ -3,22 +3,36 @@ import fastf1 as ff1
 import pandas as pd
 
 def fetch_all_results(years):
-    """Return a DataFrame of every driver’s finishing position for each race."""
     records = []
     for year in years:
         for gp in ff1.get_event_schedule(year)['EventName']:
             sess = ff1.get_session(year, gp, 'R')
             sess.load()
-            # results: DataFrame with columns ['Position', 'Abbreviation', 'TeamName']
-            for _, row in sess.results.iterrows():
+            results = sess.results
+
+            # Drop any rows where Position is NaN or non-numeric
+            results = results[results['Position'].notna()]
+
+            for _, row in results.iterrows():
+                pos = row['Position']
+                # ensure it’s a string of digits
+                if isinstance(pos, str) and pos.isdigit():
+                    finish = int(pos)
+                elif isinstance(pos, (int,float)):
+                    finish = int(pos)
+                else:
+                    # skip weird values like 'DNF'
+                    continue
+
                 records.append({
                     'Year': year,
                     'GP': gp,
                     'Driver': row['Abbreviation'],
                     'Team': row['TeamName'],
-                    'FinishPos': int(row['Position'])
+                    'FinishPos': finish
                 })
     return pd.DataFrame(records)
+
 
 def update_elo(ratings, group, k=20):
     """
