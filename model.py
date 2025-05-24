@@ -5,35 +5,32 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
 from scipy.stats import kendalltau
 
-df = pd.read_csv('features_wide.csv')
+# 1) Load
+train = pd.read_csv('features_train.csv')
+up    = pd.read_csv('features_upcoming.csv')
 
-train = df[df.Year == 2023].reset_index(drop=True)
-test  = df[df.Year == 2024].reset_index(drop=True)
+# 2) Define columns to drop (identifiers, target, and any non-numeric)
+drop_cols = ['Year','Driver','Best_Q','Team', 'RecencyWeight']
+X_train = train.drop(drop_cols, axis=1)
+y_train = train['Best_Q']
 
-drop_cols = ['Year','Driver','Best_Q','RecencyWeight','Team']
-features = [c for c in df.columns if c not in drop_cols]
+# 3) Weights (you can keep your 10× for 2024, or switch to use RecencyWeight)
+# weights = np.where(train.Year==2024, 10, 1)
+weights = train['RecencyWeight']
 
-X_train, y_train = train[features], train.Best_Q
-X_test,  y_test  = test[features],  test.Best_Q
+# 4) Fit the model
+model = RandomForestRegressor(n_estimators=200, random_state=42)
+model.fit(X_train, y_train, sample_weight=weights)
 
+# 5) Predict the upcoming grid
+X_up = up.drop(['Year','Driver','Team'], axis=1)
+up['PredTime'] = model.predict(X_up)
+up['PredRank'] = up['PredTime'].rank(method='first')
 
-model = RandomForestRegressor(n_estimators=100, random_state=42)
-model.fit(X_train, y_train)
-
-
-y_pred = model.predict(X_test)
-
-
-mae = mean_absolute_error(y_test, y_pred)
-print(f"Test MAE (secs): {mae:.3f}")
-
-test = test.copy()
-test['PredTime'] = y_pred
-
-test['TrueRank'] = test.Best_Q.rank(method='first')
-test['PredRank'] = test.PredTime.rank(method='first')
-
-tau, p = kendalltau(test.TrueRank, test.PredRank)
-print(f"Kendall’s Tau: {tau:.3f} (p={p:.3f})")
-
-print(test[['Driver','Best_Q','PredTime','TrueRank','PredRank']].sort_values('PredRank').to_string(index=False))
+# 6) Print your Monaco 2025 prediction
+print(
+    up
+    .sort_values('PredRank')
+    [['Driver','PredRank','PredTime']]
+    .to_string(index=False)
+)
