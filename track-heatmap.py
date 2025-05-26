@@ -2,6 +2,8 @@ import os
 import fastf1
 from fastf1 import plotting
 import matplotlib.pyplot as plt
+from matplotlib.collections import LineCollection
+import numpy as np
 
 
 cache_dir = os.path.join(os.getcwd(), 'fastf1_cache')
@@ -34,14 +36,14 @@ telemetries = [
 ]
 
 for tel, drv in zip(telemetries, top3):
-    plt.figure(figsize=(8, 6))
-    plt.scatter(
-        tel['X'], tel['Y'],
-        c=tel['Speed'],
-        s=1,
-        cmap='plasma'
-    )
-    plt.axis('off')
-    plt.title(f'{drv} — Speed Heatmap (Fastest Lap)')
-    plt.colorbar(label='Speed (km/h)')
-    plt.show()
+    pts = np.array([tel['X'], tel['Y']]).T.reshape(-1,1,2)
+    segs = np.concatenate([pts[:-1], pts[1:]], axis=1)
+    lc = LineCollection(segs, cmap='plasma', norm=plt.Normalize(50, 300))
+    lc.set_array(tel['Speed'].values)
+    lc.set_linewidth(2)
+    plt.gca().add_collection(lc)
+
+plt.axis('equal'); plt.axis('off')
+plt.title('Top-3 Fastest Laps as Color-mapped Lines')
+plt.colorbar(lc, label='Speed (km/h)')
+plt.show()
