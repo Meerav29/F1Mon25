@@ -115,7 +115,11 @@ def apply_recency_weight(wide, decay=1.0):
 
 def enrich_with_elo(wide, years):
     # 1) compute driver Elo
-    driver_elo = compute_driver_elo(years)
+    driver_elo = compute_driver_elo(
+    years=[2023, 2024],
+    curr_year=2025,
+    first_n_races=7
+)
     wide = wide.merge(driver_elo, on=['Year','Driver'], how='left')
 
     # 2) map drivers to teams (you might already have this in your results df)
@@ -153,6 +157,8 @@ if __name__ == "__main__":
 
     # 4) recency‐weight (only if you plan to use as sample_weight)
     train_df = apply_recency_weight(train_df)
+    up_df    = apply_recency_weight(up_df)
+
 
     # 5) filter out any drivers in train_df not present this year
     current = set(up_df.Driver)

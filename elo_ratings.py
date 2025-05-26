@@ -2,7 +2,7 @@
 import fastf1 as ff1
 import pandas as pd
 
-def fetch_all_results(years):
+def fetch_all_results(years, curr_year=None, first_n_races=None):
     records = []
     for year in years:
         for gp in ff1.get_event_schedule(year)['EventName']:
@@ -52,7 +52,11 @@ def update_elo(ratings, group, k=20):
             ratings[di['Driver']] += k * (Si - Ei)
     return ratings
 
-def compute_driver_elo(years, base_rating=1500, k=20):
+def compute_driver_elo(years,
+                       base_rating=1500,
+                       k=20,
+                       curr_year=None,
+                       first_n_races=None):
     results = fetch_all_results(years)
     drivers = results['Driver'].unique()
     # init
