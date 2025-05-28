@@ -4,6 +4,7 @@ from fastf1 import plotting
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 import numpy as np
+from matplotlib.colors import Normalize
 
 
 cache_dir = os.path.join(os.getcwd(), 'fastf1_cache')
@@ -35,15 +36,39 @@ telemetries = [
     for lap in fastest_laps
 ]
 
-for tel, drv in zip(telemetries, top3):
-    pts = np.array([tel['X'], tel['Y']]).T.reshape(-1,1,2)
-    segs = np.concatenate([pts[:-1], pts[1:]], axis=1)
-    lc = LineCollection(segs, cmap='plasma', norm=plt.Normalize(50, 300))
-    lc.set_array(tel['Speed'].values)
-    lc.set_linewidth(2)
-    plt.gca().add_collection(lc)
+# 1) Compute a global speed range for uniform coloring
+all_speeds = np.hstack([tel['Speed'].values for tel in telemetries])
+global_norm = Normalize(vmin=all_speeds.min(), vmax=all_speeds.max())
 
-plt.axis('equal'); plt.axis('off')
-plt.title('Top-3 Fastest Laps as Color-mapped Lines')
-plt.colorbar(lc, label='Speed (km/h)')
+# 2) Set up white‐background figure
+plt.style.use('default')
+fig, ax = plt.subplots(figsize=(8, 6), facecolor='white')
+ax.set_facecolor('white')
+
+# 3) Add each driver as a colored line
+for tel, drv in zip(telemetries, top3):
+    pts = np.column_stack((tel['X'], tel['Y']))
+    segs = np.stack([pts[:-1], pts[1:]], axis=1)
+
+    lc = LineCollection(
+        segs,
+        cmap='turbo',
+        norm=global_norm,
+        linewidth=3,
+        alpha=0.8
+    )
+    lc.set_array(tel['Speed'])
+    ax.add_collection(lc)
+
+# 4) Autoscale to show all data
+ax.autoscale(enable=True, axis='both', tight=True)
+
+
+# 5) Final styling
+ax.set_aspect('equal')
+ax.axis('off')
+cbar = fig.colorbar(lc, ax=ax, fraction=0.03, pad=0.02)
+cbar.set_label('Speed (km/h)')
+plt.title('Top-3 Fastest Laps — Speed Profile', pad=12)
+plt.tight_layout()
 plt.show()
