@@ -10,6 +10,8 @@ I’m building a Formula 1 race predictor 🏎️ that pulls in historical data
 * **Data cleaning:** Filters DNFs and standardizes finishing positions
 * **Elo engine:** Initializes all drivers at 1500, updates after each GP, configurable K-factors for Sprint/Feature races
 * **Performance:** Delivers \~10% accuracy gain over last season’s standings baseline
+* **Track Heatmap** 
+![Monaco Track Heatmap](monaco-heatmap-wbg.png)
 
 ---
 
