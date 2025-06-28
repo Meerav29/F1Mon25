@@ -1,35 +1,32 @@
 # elo_ratings.py
-import fastf1 as ff1
+"""Elo rating utilities based on FastF1 race results."""
+
 import pandas as pd
+
+from fastf1_data import fetch_race_results
+import fastf1
 
 def fetch_all_results(years, curr_year=None, first_n_races=None):
     records = []
     for year in years:
-        for gp in ff1.get_event_schedule(year)['EventName']:
-            sess = ff1.get_session(year, gp, 'R')
-            sess.load()
-            results = sess.results
-
-            # Drop any rows where Position is NaN or non-numeric
-            results = results[results['Position'].notna()]
+        for gp in fastf1.get_event_schedule(year)["EventName"]:
+            results = fetch_race_results(year, gp)
 
             for _, row in results.iterrows():
-                pos = row['Position']
-                # ensure it’s a string of digits
+                pos = row["Position"]
                 if isinstance(pos, str) and pos.isdigit():
                     finish = int(pos)
-                elif isinstance(pos, (int,float)):
+                elif isinstance(pos, (int, float)):
                     finish = int(pos)
                 else:
-                    # skip weird values like 'DNF'
                     continue
 
                 records.append({
-                    'Year': year,
-                    'GP': gp,
-                    'Driver': row['Abbreviation'],
-                    'Team': row['TeamName'],
-                    'FinishPos': finish
+                    "Year": year,
+                    "GP": gp,
+                    "Driver": row["Abbreviation"],
+                    "Team": row["TeamName"],
+                    "FinishPos": finish,
                 })
     return pd.DataFrame(records)
 
