@@ -34,3 +34,9 @@ I’m building a Formula 1 race predictor 🏎️ that pulls in historical data
 
 * 🌐 Website: \[https://sites.google.com/psu.edu/]
 * 🔗 LinkedIn: \[https://www.linkedin.com/in/meeravshah/]
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
