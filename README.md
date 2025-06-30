@@ -15,6 +15,16 @@ I’m building a Formula 1 race predictor 🏎️ that pulls in historical data
 
 ---
 
+## Installation
+
+Install the required Python packages with pip:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
 ## Roadmap (WIP)
 
 * Integrate qualifying session ratings
